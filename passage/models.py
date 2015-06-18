@@ -1,17 +1,26 @@
+from __future__ import print_function
+try:
+    from future_builtins import str
+except ImportError:
+    pass
+
 import sys
-import theano
-import theano.tensor as T
-import numpy as np
+
 from time import time
 
-import costs
-import updates
-import iterators 
-from utils import case_insensitive_import, save
-from preprocessing import LenFilter, standardize_targets
+import numpy as np
+import theano
+import theano.tensor as T
+
+from passage import costs
+from passage import updates
+from passage import iterators
+from passage.utils import case_insensitive_import, save
+from passage.preprocessing import LenFilter, standardize_targets
 
 def flatten(l):
     return [item for sublist in l for item in sublist]
+
 
 class RNN(object):
 
@@ -20,24 +29,24 @@ class RNN(object):
         del self.settings['self']
         self.layers = layers
 
-        if isinstance(cost, basestring):
+        if isinstance(cost, str):
             self.cost = case_insensitive_import(costs, cost)
         else:
             self.cost = cost
 
-        if isinstance(updater, basestring):
+        if isinstance(updater, str):
             self.updater = case_insensitive_import(updates, updater)()
         else:
             self.updater = updater
 
-        if isinstance(iterator, basestring):
+        if isinstance(iterator, str):
             self.iterator = case_insensitive_import(iterators, iterator)()
         else:
             self.iterator = iterator
 
         self.verbose = verbose
         for i in range(1, len(self.layers)):
-            self.layers[i].connect(self.layers[i-1])
+            self.layers[i].connect(self.layers[i - 1])
         self.params = flatten([l.params for l in layers])
 
         self.X = self.layers[0].input
@@ -85,18 +94,21 @@ class RNN(object):
                 if self.verbose >= 2:
                     n_per_sec = n / (time() - t)
                     n_left = len(trY) - n % len(trY)
-                    time_left = n_left/n_per_sec
-                    sys.stdout.write("\rEpoch %d Seen %d samples Avg cost %0.4f Time left %d seconds" % (e, n, np.mean(epoch_costs[-250:]), time_left))
+                    time_left = n_left / n_per_sec
+                    status = "\rEpoch %d Seen %d samples Avg cost %0.4f Time left %d seconds" % \
+                             (e, n, np.mean(epoch_costs[-250:]), time_left)
+                    sys.stdout.write(status)
                     sys.stdout.flush()
             costs.extend(epoch_costs)
 
-            status = "Epoch %d Seen %d samples Avg cost %0.4f Time elapsed %d seconds" % (e, n, np.mean(epoch_costs[-250:]), time() - t)
+            status = "Epoch %d Seen %d samples Avg cost %0.4f Time elapsed %d seconds" % \
+                     (e, n, np.mean(epoch_costs[-250:]), time() - t)
             if self.verbose >= 2:
-                sys.stdout.write("\r"+status) 
+                sys.stdout.write("\r" + status)
                 sys.stdout.flush()
                 sys.stdout.write("\n")
             elif self.verbose == 1:
-                print status
+                print(status)
             if path and e % snapshot_freq == 0:
                 save(self, "{0}.{1}".format(path, e))
         return costs

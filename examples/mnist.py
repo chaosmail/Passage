@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy as np
 
 from passage.models import RNN
@@ -30,4 +31,4 @@ tr_acc = np.mean(trY[:len(teY)] == np.argmax(tr_preds, axis=1))
 te_acc = np.mean(teY == np.argmax(te_preds, axis=1))
 
 # Test accuracy should be between 98.9% and 99.3%
-print 'train accuracy', tr_acc, 'test accuracy', te_acc
+print('train accuracy', tr_acc, 'test accuracy', te_acc)

@@ -1,4 +1,6 @@
+from __future__ import print_function
 import os
+
 import numpy as np
 
 def load_gender_data(ntrain=10000, ntest=10000):
@@ -6,7 +8,11 @@ def load_gender_data(ntrain=10000, ntest=10000):
     file_loc = os.path.dirname(os.path.realpath(__file__))
     relative_path = "blogger_data_2.csv" # move dataset to examples directory
     fullpath = os.path.join(file_loc, relative_path)
-    data = pd.read_csv(fullpath, nrows=ntrain+ntest)
+    try:
+        data = pd.read_csv(fullpath, nrows=ntrain+ntest)
+    except OSError:
+        print('Cannot find the dataset %s; download it from http://goo.gl/EbWA1u' % relative_path)
+        exit(-1)
     X = data['text'].values
     X = [str(x) for x in X] # ugly nan cleaner
     Y = data['gender'].values
@@ -18,7 +24,8 @@ def load_gender_data(ntrain=10000, ntest=10000):
 
 def load_mnist(data_dir=None):
     if data_dir is None:
-        import urllib
+        import urllib.request
+        import shutil
         import gzip
         url = 'http://yann.lecun.com/exdb/mnist/'
         fnames = [
@@ -29,8 +36,9 @@ def load_mnist(data_dir=None):
         ]
         for fname in fnames:
             if not os.path.isfile(fname):
-                print 'data_dir not given and file not local - downloading mnist file:', fname
-                urllib.urlretrieve(url+fname, fname)
+                print('data_dir not given and file not local - downloading mnist file: %s' % fname)
+                with urllib.request.urlopen(url+fname) as response, open(fname, 'wb') as out_file:
+                    shutil.copyfileobj(response, out_file)
         data_dir = ''
     fd = gzip.open(os.path.join(data_dir,'train-images-idx3-ubyte.gz'))
     loaded = np.fromstring(fd.read(), dtype=np.uint8)

@@ -1,5 +1,10 @@
 from setuptools import setup, find_packages    
 
+try:
+    long_description = open('README.rst').read()
+except IOError:
+    long_description =open('README.md').read()
+
 setup(
     name='passage', 
     version='0.2.4',
@@ -7,7 +12,7 @@ setup(
     description="""
         A little library for text analysis with RNNs.
     """,
-    long_description=open('README.rst').read(),
+    long_description=long_description,
     license="MIT License (See LICENSE)",
     url="https://github.com/IndicoDataSolutions/Passage",
     author="Alec Radford, Madison May",

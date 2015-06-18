@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+try:
+    from future_builtins import dict
+except ImportError:
+    pass
 
 import numpy as np
 import theano
@@ -28,7 +32,7 @@ def one_hot(X, n=None, negative_class=0.):
 def flatten(l):
     return [item for sublist in l for item in sublist]
 
-def lbf(l,b):
+def lbf(l, b):
     return [el for el, condition in zip(l, b) if condition]
 
 def list_index(l, idxs):
@@ -53,7 +57,7 @@ def tokenize(text):
     return tokenized
 
 def token_encoder(texts, max_features=9997, min_df=10):
-    df = {}
+    df = dict()
     for text in texts:
         tokens = set(text)
         for token in tokens:
@@ -61,14 +65,14 @@ def token_encoder(texts, max_features=9997, min_df=10):
                 df[token] += 1
             else:
                 df[token] = 1
-    k, v = df.keys(), np.asarray(df.values())
+    k, v = df.keys(), np.asarray(list(df.values()))
     valid = v >= min_df
     k = lbf(k, valid)
     v = v[valid]
     sort_mask = np.argsort(v)[::-1]
     k = list_index(k, sort_mask)[:max_features]
     v = v[sort_mask][:max_features]
-    xtoi = dict(zip(k, range(3, len(k)+3)))
+    xtoi = dict(zip(k, range(3, len(k) + 3)))
     return xtoi
 
 def standardize_targets(Y, cost):
@@ -82,16 +86,18 @@ def standardize_targets(Y, cost):
         if len(np.unique(Y)) > 2:
             Y = one_hot(Y, negative_class=-1.)
         else:
-            Y[Y==0] -= 1
+            Y[Y == 0] -= 1
     return Y
 
 class Tokenizer(object):
     """
     For converting lists of text into tokens used by Passage models.
-    max_features sets the maximum number of tokens (all others are mapped to UNK)
-    min_df sets the minimum number of documents a token must appear in to not get mapped to UNK
-    lowercase controls whether the text is lowercased or not
-    character sets whether the tokenizer works on a character or word level
+
+    Properties:
+      max_features (int) -- sets the maximum number of tokens (all others are mapped to UNK) (default 9997)
+      min_df (int) -- sets the minimum number of documents a token must appear in to not get mapped to UNK (default 10)
+      lowercase (bool) -- controls whether the text is lowercased or not (default True)
+      character (bool) -- sets whether the tokenizer works on a character or word level (default False)
 
     Usage:
     >>> from passage.preprocessing import Tokenizer
@@ -117,7 +123,7 @@ class Tokenizer(object):
             tokens = [list(text) for text in texts]
         else:
             tokens = [tokenize(text) for text in texts]
-        self.encoder = token_encoder(tokens, max_features=self.max_features-3, min_df=self.min_df)
+        self.encoder = token_encoder(tokens, max_features=self.max_features - 3, min_df=self.min_df)
         self.encoder['PAD'] = 0
         self.encoder['END'] = 1
         self.encoder['UNK'] = 2
@@ -148,6 +154,12 @@ class Tokenizer(object):
         return [joiner.join([self.decoder[token] for token in code]) for code in codes]
 
 class LenFilter(object):
+    """
+    Properties:
+      max_len (int, default=1000)
+      min_max_len (int, default=100)
+      percentile (int, default=99)
+    """
 
     def __init__(self, max_len=1000, min_max_len=100, percentile=99):
         self.max_len = max_len
@@ -166,4 +178,3 @@ class LenFilter(object):
             return list_index(data[0], valid_idxs)
         else:
             return tuple([list_index(d, valid_idxs) for d in data])
-

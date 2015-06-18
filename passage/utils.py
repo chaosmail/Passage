@@ -1,11 +1,15 @@
+from __future__ import division
+try:
+    import cPickle
+except ImportError:
+    import pickle as cPickle
 import numpy as np
 import theano
 import theano.tensor as T
-import cPickle
 
 def iter_data(*data, **kwargs):
     size = kwargs.get('size', 128)
-    batches = len(data[0]) / size
+    batches = len(data[0]) // size
     if len(data[0]) % size != 0:
         batches += 1
 
@@ -15,7 +19,7 @@ def iter_data(*data, **kwargs):
         if len(data) == 1:
             yield data[0][start:end]
         else:
-            yield tuple([d[start:end] for d in data]) 
+            yield tuple([d[start:end] for d in data])
 
 def iter_indices(*data, **kwargs):
     size = kwargs.get('size', 128)
@@ -41,7 +45,9 @@ def load(path):
     import models
     model = cPickle.load(open(path))
     model_class = getattr(models, model['model'])
-    model['config']['layers'] = [getattr(layers, layer['layer'])(**layer['config']) for layer in model['config']['layers']]
+    model['config']['layers'] = [
+        getattr(layers, layer['layer'])(**layer['config']) for layer in model['config']['layers']
+    ]
     model = model_class(**model['config'])
     return model
 
@@ -52,7 +58,7 @@ def save(model, path):
         layer_name = layer.__class__.__name__
         weights = [p.get_value() for p in layer.params]
         layer_config['weights'] = weights
-        layer_configs.append({'layer':layer_name, 'config':layer_config})
+        layer_configs.append({'layer': layer_name, 'config': layer_config})
     model.settings['layers'] = layer_configs
-    serializable_model = {'model':model.__class__.__name__, 'config':model.settings}
+    serializable_model = {'model': model.__class__.__name__, 'config': model.settings}
     cPickle.dump(serializable_model, open(path, 'wb'))

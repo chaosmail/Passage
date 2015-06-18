@@ -1,5 +1,8 @@
 **Passage**
 ===================
+
+[![Build Status](https://travis-ci.org/chaosmail/Passage.svg?branch=feat%2Fpy3)](https://travis-ci.org/chaosmail/Passage)
+
 A little library for text analysis with RNNs.
 
 Warning: very alpha, work in progress.

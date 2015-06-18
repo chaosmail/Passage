@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import numpy as np
 import pandas as pd
 from lxml import html
@@ -13,7 +15,13 @@ def clean(texts):
 	return [html.fromstring(text).text_content().lower().strip() for text in texts]
  
 if __name__ == "__main__":
-	tr_data = pd.read_csv('labeledTrainData.tsv', delimiter='\t') 
+	
+	try:
+		tr_data = pd.read_csv('labeledTrainData.tsv', delimiter='\t') 
+	except OSError:
+		print('Cannot find the dataset labeledTrainData.tsv')
+		exit(-1)
+	
 	trX = clean(tr_data['review'].values)
 	trY = tr_data['sentiment'].values
 
