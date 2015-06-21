@@ -4,13 +4,10 @@ import numpy as np
 import theano
 import theano.tensor as T
 from theano.tensor.extra_ops import repeat
-from theano.sandbox.rng_mrg import MRG_RandomStreams as RandomStreams
 
 from passage import activations
 from passage import inits
 from passage.theano_utils import shared0s, floatX, theano_one_hot, dropout
-
-srng = RandomStreams()
 
 
 class Generic(object):
